@@ -1,3 +1,6 @@
+/** 블록 외접원 반지름(논리 px). 렌더와 물리가 같은 기하를 쓴다 */
+export const HEX = 68
+
 export interface Axial {
   q: number
   r: number

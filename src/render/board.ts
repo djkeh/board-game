@@ -1,11 +1,10 @@
 import { Container, Graphics } from 'pixi.js'
-import { hexToPixel } from '../game/hexgrid'
+import { HEX, hexToPixel } from '../game/hexgrid'
 import { selectable } from '../game/rules'
 import type { GameState } from '../game/types'
 
 /** 논리 해상도. main.ts가 뷰포트에 맞춰 스케일한다 */
 export const BOARD_SIZE = 1080
-const HEX = 68
 const COLORS = { white: 0xf2f7ff, blue: 0x5fc4e6, edge: 0x9fb8d8, hilite: 0xffd54a, frame: 0x1e4fb5, penguin: 0x1d1d1d }
 
 export class BoardView {
