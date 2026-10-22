@@ -49,7 +49,7 @@ export class World {
     for (const b of alive) {
       this.byId.set(b.id, b)
       const p = hexToPixel(b, HEX)
-      const body = Bodies.polygon(p.x, p.y, 6, HEX * 0.92, { angle: Math.PI / 6, frictionAir: PARAMS.frictionAir, inertia: Infinity })
+      const body = Bodies.polygon(p.x, p.y, 6, HEX * 0.92, { frictionAir: PARAMS.frictionAir, inertia: Infinity }) // 기본 방향이 pointy-top
       this.bodies.set(b.id, body)
       this.last[b.id * 2] = p.x
       this.last[b.id * 2 + 1] = p.y
