@@ -23,6 +23,7 @@ async function main() {
   }
   app.renderer.on('resize', fit)
   fit()
+  new ResizeObserver(() => app.resize()).observe(boardEl) // HUD 높이가 바뀌면 #board도 바뀐다
 
   let state: GameState = newGame(2, 3)
   function newGame(players: number, rounds: number): GameState {
