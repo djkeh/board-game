@@ -1,0 +1,87 @@
+import { describe, expect, it } from 'vitest'
+import { createGame, reduce } from '../src/game/reducer'
+import { rollSpin, selectable } from '../src/game/rules'
+import type { GameState } from '../src/game/types'
+
+const game = (seed = 7, rounds = 3) => createGame({ players: ['A', 'B', 'C'], rounds, seed })
+
+/** 시드를 뒤져 다음 룰렛이 원하는 결과가 되는 상태를 만든다 */
+function withNextSpin(s: GameState, want: string): GameState {
+  for (let seed = 0; seed < 1000; seed++) if (rollSpin(seed).spin === want) return { ...s, seed }
+  throw new Error('no seed')
+}
+
+describe('createGame', () => {
+  it('builds 37 blocks, 19 white / 18 blue, penguin at centre, deterministic', () => {
+    const s = game()
+    expect(s.blocks).toHaveLength(37)
+    expect(s.blocks.filter((b) => b.color === 'white')).toHaveLength(19)
+    expect(s.blocks.every((b) => b.alive)).toBe(true)
+    const pb = s.blocks.find((b) => b.id === s.penguinBlock)!
+    expect([pb.q, pb.r]).toEqual([0, 0])
+    expect(s.phase).toBe('spin')
+    expect(game()).toEqual(s)
+    expect(game(8).blocks.map((b) => b.color)).not.toEqual(s.blocks.map((b) => b.color))
+  })
+})
+
+describe('reduce', () => {
+  it('ignores actions in the wrong phase', () => {
+    const s = game()
+    expect(reduce(s, { type: 'knock', blockId: 0 })).toBe(s)
+    expect(reduce(s, { type: 'nextRound' })).toBe(s)
+    const picked = reduce(withNextSpin(s, 'any'), { type: 'spin' })
+    expect(picked.phase).toBe('pick')
+    expect(reduce(picked, { type: 'spin' })).toBe(picked)
+  })
+
+  it('rejects knocking a block the spin does not allow', () => {
+    const s = reduce(withNextSpin(game(), 'white'), { type: 'spin' })
+    const blue = s.blocks.find((b) => b.color === 'blue')!
+    expect(reduce(s, { type: 'knock', blockId: blue.id })).toBe(s)
+    const white = s.blocks.find((b) => b.color === 'white')!
+    const next = reduce(s, { type: 'knock', blockId: white.id })
+    expect(next.blocks[white.id]!.alive).toBe(false)
+    expect(next.phase).toBe('spin')
+    expect(next.current).toBe(1)
+    expect(next.lastFell).toEqual([white.id])
+  })
+
+  it('skip passes the turn', () => {
+    const s = reduce(withNextSpin(game(), 'skip'), { type: 'spin' })
+    expect(s.phase).toBe('spin')
+    expect(s.current).toBe(1)
+    expect(s.spin).toBe('skip')
+  })
+
+  it('passes the turn when no block of the rolled colour remains', () => {
+    const base = game()
+    const noWhite = { ...base, blocks: base.blocks.map((b) => (b.color === 'white' ? { ...b, alive: false } : b)) }
+    const s = reduce(withNextSpin(noWhite, 'white'), { type: 'spin' })
+    expect(s.phase).toBe('spin')
+    expect(s.current).toBe(1)
+    expect(s.message).toContain('건너')
+  })
+
+  it('plays a 3-round game to the end; loser starts the next round', () => {
+    let s = game(11, 3)
+    const seenRounds: number[] = []
+    for (let guard = 0; s.phase !== 'gameOver'; guard++) {
+      if (guard > 5000) throw new Error('game did not finish')
+      if (s.phase === 'spin') s = reduce(s, { type: 'spin' })
+      else if (s.phase === 'pick') s = reduce(s, { type: 'knock', blockId: selectable(s.blocks, s.spin)[0]!.id })
+      else if (s.phase === 'roundEnd') {
+        const loser = s.roundLoser!
+        expect(s.players[loser]!.losses).toBeGreaterThan(0)
+        s = reduce(s, { type: 'nextRound' })
+        expect(s.current).toBe(loser)
+        expect(s.blocks.every((b) => b.alive)).toBe(true)
+        seenRounds.push(s.round)
+      }
+    }
+    expect(seenRounds).toEqual([2, 3])
+    expect(s.round).toBe(3)
+    expect(s.players.reduce((n, p) => n + p.losses, 0)).toBe(3)
+    expect(reduce(s, { type: 'spin' })).toBe(s)
+  })
+})
