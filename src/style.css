@@ -14,6 +14,11 @@ html, body { margin: 0; height: 100%; font-family: system-ui, sans-serif; backgr
 button { font-size: 16px; padding: 10px 14px; border: 0; border-radius: 8px; background: #ffd54a; color: #0b2a5b; font-weight: 700; cursor: pointer; }
 form { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: auto; }
 select, input { font-size: 16px; padding: 6px; }
+#debug details { font-size: 12px; }
+#debug summary { cursor: pointer; }
+#debug label { display: flex; justify-content: space-between; gap: 8px; margin: 2px 0; }
+#debug input { width: 72px; font-size: 12px; padding: 2px 4px; }
+#debug button { font-size: 12px; padding: 6px 10px; margin-top: 4px; }
 @media (orientation: landscape) {
   #app { flex-direction: row; }
   #hud { width: 280px; }

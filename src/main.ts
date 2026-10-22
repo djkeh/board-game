@@ -3,6 +3,7 @@ import { createGame, reduce } from './game/reducer'
 import type { Action, GameState } from './game/types'
 import { World } from './physics/world'
 import { BOARD_SIZE, BoardView } from './render/board'
+import { mountDebug } from './ui/debug'
 import { renderHud } from './ui/hud'
 
 const NAMES = ['1번', '2번', '3번', '4번']
@@ -66,6 +67,7 @@ async function main() {
   })
   render()
   resetWorld()
+  if (import.meta.env.DEV || new URLSearchParams(location.search).has('debug')) mountDebug(document.getElementById('debug')!, resetWorld)
 }
 
 main()
