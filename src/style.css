@@ -1,0 +1,20 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; font-family: system-ui, sans-serif; background: #0b2a5b; color: #fff; }
+#app { display: flex; flex-direction: column; height: 100%; }
+#board { flex: 1; min-height: 0; min-width: 0; }
+#board canvas { display: block; }
+#hud { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+#hud h1 { font-size: 20px; margin: 0; }
+#hud p { margin: 0; }
+#hud ul { list-style: none; margin: 0; padding: 0; }
+#hud li { display: flex; justify-content: space-between; padding: 4px 8px; border-radius: 6px; }
+#hud li.current { background: #ffd54a; color: #0b2a5b; font-weight: 700; }
+.msg { min-height: 2.6em; font-weight: 600; }
+.win { color: #ffd54a; font-size: 20px; font-weight: 700; }
+button { font-size: 16px; padding: 10px 14px; border: 0; border-radius: 8px; background: #ffd54a; color: #0b2a5b; font-weight: 700; cursor: pointer; }
+form { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: auto; }
+select, input { font-size: 16px; padding: 6px; }
+@media (orientation: landscape) {
+  #app { flex-direction: row; }
+  #hud { width: 280px; }
+}

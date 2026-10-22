@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>펭귄 얼음 깨기</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <div id="board"></div>
+      <aside id="hud">
+        <h1>펭귄 얼음 깨기</h1>
+        <div id="status"></div>
+        <form id="new">
+          <label>인원
+            <select name="players">
+              <option value="2">2명</option>
+              <option value="3">3명</option>
+              <option value="4">4명</option>
+            </select>
+          </label>
+          <label>판 수 <input name="rounds" type="number" min="1" max="9" value="3" size="2" /></label>
+          <button type="submit">새 게임</button>
+        </form>
+      </aside>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
