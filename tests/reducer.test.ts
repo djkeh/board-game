@@ -44,7 +44,6 @@ describe('reduce', () => {
     expect(next.blocks[white.id]!.alive).toBe(false)
     expect(next.phase).toBe('spin')
     expect(next.current).toBe(1)
-    expect(next.lastFell).toEqual([white.id])
   })
 
   it('skip passes the turn', () => {
@@ -63,15 +62,22 @@ describe('reduce', () => {
     expect(s.message).toContain('건너')
   })
 
-  it('plays a 3-round game to the end; loser starts the next round', () => {
+  it('plays a 3-round game to the end; turns rotate; loser starts the next round', () => {
     let s = game(11, 3)
     const seenRounds: number[] = []
     for (let guard = 0; s.phase !== 'gameOver'; guard++) {
       if (guard > 5000) throw new Error('game did not finish')
-      if (s.phase === 'spin') s = reduce(s, { type: 'spin' })
-      else if (s.phase === 'pick') s = reduce(s, { type: 'knock', blockId: selectable(s.blocks, s.spin)[0]!.id })
-      else if (s.phase === 'roundEnd') {
-        const loser = s.roundLoser!
+      const prev = s.current
+      if (s.phase === 'spin') {
+        s = reduce(s, { type: 'spin' })
+        if (s.phase === 'spin') expect(s.current).toBe((prev + 1) % 3) // 건너뜀
+        else expect(s.current).toBe(prev)
+      } else if (s.phase === 'pick') {
+        s = reduce(s, { type: 'knock', blockId: selectable(s.blocks, s.spin)[0]!.id })
+        if (s.phase === 'spin') expect(s.current).toBe((prev + 1) % 3)
+        else expect(s.current).toBe(prev) // 펭귄 낙하: 패자가 current로 남는다
+      } else if (s.phase === 'roundEnd') {
+        const loser = s.current
         expect(s.players[loser]!.losses).toBeGreaterThan(0)
         s = reduce(s, { type: 'nextRound' })
         expect(s.current).toBe(loser)

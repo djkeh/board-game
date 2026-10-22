@@ -3,15 +3,6 @@ export interface Axial {
   r: number
 }
 
-export const DIRS: readonly Axial[] = [
-  { q: 1, r: 0 },
-  { q: 1, r: -1 },
-  { q: 0, r: -1 },
-  { q: -1, r: 0 },
-  { q: -1, r: 1 },
-  { q: 0, r: 1 },
-]
-
 /** 중심에서 거리 radius 이내의 모든 칸 (radius 3 → 37칸) */
 export function cellsWithin(radius: number): Axial[] {
   const out: Axial[] = []
@@ -21,8 +12,12 @@ export function cellsWithin(radius: number): Axial[] {
   return out
 }
 
-export const isNeighbor = (a: Axial, b: Axial): boolean =>
-  DIRS.some((d) => a.q + d.q === b.q && a.r + d.r === b.r)
+/** 축 좌표 거리가 1이면 이웃 */
+export function isNeighbor(a: Axial, b: Axial): boolean {
+  const dq = b.q - a.q
+  const dr = b.r - a.r
+  return Math.max(Math.abs(dq), Math.abs(dr), Math.abs(dq + dr)) === 1
+}
 
 /** pointy-top 육각형 중심의 픽셀 좌표. size는 외접원 반지름 */
 export function hexToPixel(a: Axial, size: number): { x: number; y: number } {

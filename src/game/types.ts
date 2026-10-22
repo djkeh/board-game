@@ -18,14 +18,13 @@ export interface Player {
 export interface GameState {
   phase: Phase
   players: Player[]
+  /** 현재 차례. roundEnd/gameOver에서는 펭귄을 떨어뜨린 사람 */
   current: number
   round: number
   totalRounds: number
   blocks: Block[]
   penguinBlock: number
   spin: Spin | null
-  lastFell: number[]
-  roundLoser: number | null
   seed: number
   message: string
 }

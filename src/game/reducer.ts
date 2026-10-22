@@ -9,7 +9,7 @@ export interface Config {
   seed: number
 }
 
-export const BOARD_RADIUS = 3
+const BOARD_RADIUS = 3
 
 /** 37칸에 흰색 19, 파란색 18을 섞어 배치 */
 function makeBlocks(seed: number): { blocks: Block[]; seed: number } {
@@ -35,8 +35,6 @@ export function createGame(cfg: Config): GameState {
     blocks,
     penguinBlock: blocks.find((b) => b.q === 0 && b.r === 0)!.id,
     spin: null,
-    lastFell: [],
-    roundLoser: null,
     seed,
     message: `${cfg.players[0]} 차례. 룰렛을 돌리세요`,
   }
@@ -52,37 +50,27 @@ export function reduce(s: GameState, a: Action): GameState {
       const { spin, seed } = rollSpin(s.seed)
       if (selectable(s.blocks, spin).length === 0) {
         const n = nextPlayer(s)
-        return {
-          ...s, seed, spin, lastFell: [], current: n,
-          message: `${name(s, s.current)}: ${SPIN_LABEL[spin]} → 건너뜀. ${name(s, n)} 차례`,
-        }
+        return { ...s, seed, spin, current: n, message: `${name(s, s.current)}: ${SPIN_LABEL[spin]} → 건너뜀. ${name(s, n)} 차례` }
       }
-      return { ...s, seed, spin, lastFell: [], phase: 'pick', message: `${name(s, s.current)}: ${SPIN_LABEL[spin]} 블록을 고르세요` }
+      return { ...s, seed, spin, phase: 'pick', message: `${name(s, s.current)}: ${SPIN_LABEL[spin]} 블록을 고르세요` }
     }
     case 'knock': {
       if (s.phase !== 'pick') return s
       if (!selectable(s.blocks, s.spin).some((b) => b.id === a.blockId)) return s
-      const { blocks, fell, penguinFell } = resolveKnock(s.blocks, a.blockId, s.penguinBlock)
+      const { blocks, penguinFell } = resolveKnock(s.blocks, a.blockId, s.penguinBlock)
       if (!penguinFell) {
         const n = nextPlayer(s)
-        return { ...s, blocks, lastFell: fell, spin: null, phase: 'spin', current: n, message: `${name(s, n)} 차례. 룰렛을 돌리세요` }
+        return { ...s, blocks, spin: null, phase: 'spin', current: n, message: `${name(s, n)} 차례. 룰렛을 돌리세요` }
       }
       const players = s.players.map((p, i) => (i === s.current ? { ...p, losses: p.losses + 1 } : p))
       const last = s.round >= s.totalRounds
-      return {
-        ...s, blocks, players, lastFell: fell, spin: null, roundLoser: s.current,
-        phase: last ? 'gameOver' : 'roundEnd',
-        message: `${name(s, s.current)}이(가) 펭귄을 떨어뜨렸습니다!`,
-      }
+      return { ...s, blocks, players, spin: null, phase: last ? 'gameOver' : 'roundEnd', message: `${name(s, s.current)}이(가) 펭귄을 떨어뜨렸습니다!` }
     }
     case 'nextRound': {
+      // 직전 판 패자(current)가 먼저 시작한다
       if (s.phase !== 'roundEnd') return s
       const { blocks, seed } = makeBlocks(s.seed)
-      const start = s.roundLoser ?? 0
-      return {
-        ...s, blocks, seed, round: s.round + 1, current: start, phase: 'spin', spin: null, lastFell: [], roundLoser: null,
-        message: `${s.round + 1}판. ${name(s, start)} 차례. 룰렛을 돌리세요`,
-      }
+      return { ...s, blocks, seed, round: s.round + 1, phase: 'spin', spin: null, message: `${s.round + 1}판. ${name(s, s.current)} 차례. 룰렛을 돌리세요` }
     }
   }
 }
