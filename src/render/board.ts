@@ -8,24 +8,13 @@ export const BOARD_SIZE = 1080
 const HEX = 68
 const COLORS = { white: 0xf2f7ff, blue: 0x5fc4e6, edge: 0x9fb8d8, hilite: 0xffd54a, frame: 0x1e4fb5, penguin: 0x1d1d1d }
 
-function hexPoints(radius: number): number[] {
-  const pts: number[] = []
-  for (let k = 0; k < 6; k++) {
-    const a = Math.PI / 6 + (k * Math.PI) / 3
-    pts.push(Math.cos(a) * radius, Math.sin(a) * radius)
-  }
-  return pts
-}
-
-const BLOCK_POINTS = hexPoints(HEX * 0.92)
-
 export class BoardView {
   readonly root = new Container()
   private blocks = new Map<number, Graphics>()
   private penguin = new Graphics()
 
   constructor(private onPick: (id: number) => void) {
-    this.root.addChild(new Graphics().poly(hexPoints(BOARD_SIZE / 2)).fill(COLORS.frame))
+    this.root.addChild(new Graphics().regularPoly(0, 0, BOARD_SIZE / 2, 6).fill(COLORS.frame))
     this.penguin
       .circle(0, 0, HEX * 0.42).fill(COLORS.penguin)
       .ellipse(0, HEX * 0.08, HEX * 0.24, HEX * 0.3).fill(0xffffff)
@@ -47,7 +36,7 @@ export class BoardView {
       const hot = pick.has(b.id)
       g.visible = b.alive
       g.eventMode = hot ? 'static' : 'none'
-      g.clear().poly(BLOCK_POINTS).fill(COLORS[b.color]).stroke({ width: hot ? 8 : 3, color: hot ? COLORS.hilite : COLORS.edge })
+      g.clear().regularPoly(0, 0, HEX * 0.92, 6).fill(COLORS[b.color]).stroke({ width: hot ? 8 : 3, color: hot ? COLORS.hilite : COLORS.edge })
     }
     const pb = s.blocks.find((b) => b.id === s.penguinBlock)!
     this.penguin.visible = pb.alive
