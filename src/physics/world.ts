@@ -34,11 +34,14 @@ const hexDist = (b: Block) => Math.max(Math.abs(b.q), Math.abs(b.r), Math.abs(b.
  * 탑뷰 2D 물리 월드. 중력 없음. 블록은 이웃과 스프링으로 묶이고 가장자리 블록은
  * 자기 자리에 스프링으로 고정된다(프레임에 끼어 있는 마찰 대신). 타격 충격으로
  * 스프링이 임계치 이상 늘어나면 끊기고, 프레임까지 이어지지 않는 블록은 떨어진다.
+ * 모든 블록에는 약한 제자리 스프링도 있어 흔들린 뒤 격자로 돌아온다(시각용).
  */
 export class World {
   private engine = Engine.create({ gravity: { x: 0, y: 0, scale: 0 } })
   private bodies = new Map<number, Matter.Body>()
   private links: Link[] = []
+  /** 제자리 스프링. 시각용이라 links에 넣지 않는다 */
+  private homes = new Map<number, Matter.Constraint>()
   private byId = new Map<number, Block>()
   private last: Float32Array
 
@@ -53,6 +56,9 @@ export class World {
       this.bodies.set(b.id, body)
       this.last[b.id * 2] = p.x
       this.last[b.id * 2 + 1] = p.y
+      const home = Constraint.create({ pointA: p, bodyB: body, length: 0, stiffness: PARAMS.home, damping: PARAMS.damping })
+      this.homes.set(b.id, home)
+      Composite.add(this.engine.world, home)
       if (hexDist(b) === radius) {
         this.link(Constraint.create({ pointA: p, bodyB: body, length: 0, stiffness: PARAMS.anchor, damping: PARAMS.damping }), b.id, null, 0)
       }
@@ -121,7 +127,9 @@ export class World {
 
   private remove(id: number): void {
     Composite.remove(this.engine.world, this.bodies.get(id)!)
+    Composite.remove(this.engine.world, this.homes.get(id)!)
     this.bodies.delete(id)
+    this.homes.delete(id)
     this.links = this.links.filter((l) => {
       if (l.a !== id && l.b !== id) return true
       Composite.remove(this.engine.world, l.c)
