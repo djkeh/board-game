@@ -1,11 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { cellsWithin, isNeighbor } from '../src/game/hexgrid'
-import { PENGUIN_MIN_SUPPORT, SPINS, aliveNeighbors, resolveKnock, rollSpin, selectable, winners } from '../src/game/rules'
+import { SPINS, aliveNeighbors, rollSpin, selectable, winners } from '../src/game/rules'
 import type { Block } from '../src/game/types'
 
 const blocks = (): Block[] =>
   cellsWithin(3).map((c, id) => ({ id, q: c.q, r: c.r, color: id % 2 ? 'blue' : 'white', alive: true }))
-const CENTER = blocks().find((b) => b.q === 0 && b.r === 0)!.id
 
 describe('hexgrid', () => {
   it('radius 3 has 37 cells, center has 6 neighbors', () => {
@@ -13,6 +12,7 @@ describe('hexgrid', () => {
     expect(cells).toHaveLength(37)
     expect(cells.filter((c) => isNeighbor({ q: 0, r: 0 }, c))).toHaveLength(6)
     expect(isNeighbor({ q: 0, r: 0 }, { q: 0, r: 0 })).toBe(false)
+    expect(isNeighbor({ q: 0, r: 0 }, { q: 2, r: -1 })).toBe(false)
   })
 })
 
@@ -48,32 +48,13 @@ describe('selectable', () => {
   })
 })
 
-describe('resolveKnock', () => {
-  it('removes the block without mutating input', () => {
+describe('aliveNeighbors', () => {
+  it('counts only living neighbours', () => {
     const b = blocks()
-    const out = resolveKnock(b, 3, CENTER)
-    expect(b[3]!.alive).toBe(true)
-    expect(out.blocks[3]!.alive).toBe(false)
-    expect(out.fell).toEqual([3])
-    expect(out.penguinFell).toBe(false)
-  })
-  it('penguin falls when its own block is knocked', () => {
-    const out = resolveKnock(blocks(), CENTER, CENTER)
-    expect(out.penguinFell).toBe(true)
-    expect(out.fell).toEqual([CENTER])
-  })
-  it('penguin falls when support drops below the minimum', () => {
-    let b = blocks()
-    const center = b[CENTER]!
-    const ring = aliveNeighbors(b, center)
-    expect(ring).toHaveLength(6)
-    // leave exactly PENGUIN_MIN_SUPPORT neighbours, then knock one more
-    for (const n of ring.slice(0, 6 - PENGUIN_MIN_SUPPORT)) b = resolveKnock(b, n.id, CENTER).blocks
-    expect(resolveKnock(b, 0, CENTER).penguinFell).toBe(false)
-    const out = resolveKnock(b, ring[6 - PENGUIN_MIN_SUPPORT]!.id, CENTER)
-    expect(out.penguinFell).toBe(true)
-    expect(out.fell).toContain(CENTER)
-    expect(out.blocks[CENTER]!.alive).toBe(false)
+    const center = b.find((x) => x.q === 0 && x.r === 0)!
+    expect(aliveNeighbors(b, center)).toHaveLength(6)
+    b.find((x) => x.q === 1 && x.r === 0)!.alive = false
+    expect(aliveNeighbors(b, center)).toHaveLength(5)
   })
 })
 

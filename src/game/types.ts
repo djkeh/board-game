@@ -29,4 +29,8 @@ export interface GameState {
   message: string
 }
 
-export type Action = { type: 'spin' } | { type: 'knock'; blockId: number } | { type: 'nextRound' }
+export type Action =
+  | { type: 'spin' }
+  /** fell: 물리 시뮬레이션이 떨어뜨린 블록(타격한 블록 포함) */
+  | { type: 'knock'; blockId: number; fell: number[] }
+  | { type: 'nextRound' }

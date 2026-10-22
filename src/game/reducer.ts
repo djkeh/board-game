@@ -1,6 +1,6 @@
 import { cellsWithin } from './hexgrid'
 import { random } from './rng'
-import { SPIN_LABEL, resolveKnock, rollSpin, selectable } from './rules'
+import { SPIN_LABEL, rollSpin, selectable } from './rules'
 import type { Action, Block, Color, GameState } from './types'
 
 export interface Config {
@@ -57,14 +57,15 @@ export function reduce(s: GameState, a: Action): GameState {
     case 'knock': {
       if (s.phase !== 'pick') return s
       if (!selectable(s.blocks, s.spin).some((b) => b.id === a.blockId)) return s
-      const { blocks, penguinFell } = resolveKnock(s.blocks, a.blockId, s.penguinBlock)
-      if (!penguinFell) {
+      const blocks = s.blocks.map((b) => (a.fell.includes(b.id) ? { ...b, alive: false } : b))
+      const seed = random(s.seed).seed // 물리가 s.seed를 썼으니 한 칸 넘긴다
+      if (!a.fell.includes(s.penguinBlock)) {
         const n = nextPlayer(s)
-        return { ...s, blocks, spin: null, phase: 'spin', current: n, message: `${name(s, n)} 차례. 룰렛을 돌리세요` }
+        return { ...s, blocks, seed, spin: null, phase: 'spin', current: n, message: `${name(s, n)} 차례. 룰렛을 돌리세요` }
       }
       const players = s.players.map((p, i) => (i === s.current ? { ...p, losses: p.losses + 1 } : p))
       const last = s.round >= s.totalRounds
-      return { ...s, blocks, players, spin: null, phase: last ? 'gameOver' : 'roundEnd', message: `${name(s, s.current)}이(가) 펭귄을 떨어뜨렸습니다!` }
+      return { ...s, blocks, seed, players, spin: null, phase: last ? 'gameOver' : 'roundEnd', message: `${name(s, s.current)}이(가) 펭귄을 떨어뜨렸습니다!` }
     }
     case 'nextRound': {
       // 직전 판 패자(current)가 먼저 시작한다

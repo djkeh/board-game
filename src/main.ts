@@ -15,7 +15,7 @@ async function main() {
   await app.init({ resizeTo: boardEl, background: 0xcfe9f7, antialias: true, resolution: window.devicePixelRatio, autoDensity: true })
   boardEl.appendChild(app.canvas)
 
-  const board = new BoardView((id) => dispatch({ type: 'knock', blockId: id }))
+  const board = new BoardView((id) => dispatch({ type: 'knock', blockId: id, fell: [id] })) // 물리 연결 전 임시
   app.stage.addChild(board.root)
   const fit = () => {
     board.root.scale.set(Math.min(app.screen.width, app.screen.height) / BOARD_SIZE)

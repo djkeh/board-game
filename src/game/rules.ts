@@ -27,24 +27,6 @@ export function aliveNeighbors(blocks: readonly Block[], of: Block): Block[] {
   return blocks.filter((b) => b.alive && b.id !== of.id && isNeighbor(of, b))
 }
 
-// ponytail: 임시 낙하 규칙. 펭귄 블록의 살아 있는 이웃이 이 수보다 적으면 낙하. M2에서 물리 + 지지 그래프로 교체
-export const PENGUIN_MIN_SUPPORT = 2
-
-export function resolveKnock(
-  blocks: readonly Block[],
-  blockId: number,
-  penguinBlock: number,
-): { blocks: Block[]; fell: number[]; penguinFell: boolean } {
-  const next = blocks.map((b) => ({ ...b, alive: b.alive && b.id !== blockId }))
-  const fell = [blockId]
-  const pb = next.find((b) => b.id === penguinBlock)!
-  if (pb.alive && aliveNeighbors(next, pb).length < PENGUIN_MIN_SUPPORT) {
-    pb.alive = false
-    fell.push(pb.id)
-  }
-  return { blocks: next, fell, penguinFell: !pb.alive }
-}
-
 /** 패배 수가 가장 적은 플레이어 인덱스. 동점이면 여럿 */
 export function winners(players: readonly Player[]): number[] {
   const min = Math.min(...players.map((p) => p.losses))
