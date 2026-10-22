@@ -67,7 +67,7 @@ AI 이미지 생성 도구로 만들고, 배경 제거 후 투명 PNG로 저장�
 
 | 영역 | 선택 |
 | --- | --- |
-| 런타임/빌드 | Node 22, pnpm, Vite, TypeScript (strict) |
+| 런타임/빌드 | Node 24, npm, Vite 8, TypeScript 7 (strict) |
 | 렌더링 | pixi.js 8 (WebGL, WebGPU 자동 선택) |
 | 물리 | matter-js |
 | UI (메뉴·HUD) | 일반 HTML/CSS 오버레이. 게임 캔버스 위에 배치 |
@@ -81,7 +81,7 @@ AI 이미지 생성 도구로 만들고, 배경 제거 후 투명 PNG로 저장�
 ```mermaid
 flowchart LR
   UI[ui/ HTML 메뉴·HUD] -->|action| Game[game/ 순수 TS 규칙·상태]
-  Input[input/ 포인터] -->|action| Game
+  Input[Pixi pointertap] -->|action| Game
   Game -->|knock 요청| Phys[physics/ Matter.js 월드]
   Phys -->|fell / penguinFell 이벤트| Game
   Game -->|state 변경 이벤트| Render[render/ PixiJS 씬]
@@ -92,18 +92,17 @@ flowchart LR
 * `physics/`: 보드 물리 월드. `knock(blockId, seed)`를 받아 낙하한 블록 목록과 펭귄 낙하 여부를 돌려준다
 * `render/`: 상태와 물리 좌표를 받아 그리기만 한다. 애니메이션(망치, 흔들림, 낙하, 룰렛 회전)은 여기서
 * `ui/`: 설정 화면(인원·이름·판 수), 턴 표시, 룰렛 결과, 점수판, 결과 화면. HTML이라 접근성·반응형이 쉽다
-* `input/`: `pointerdown` 하나로 마우스와 터치를 함께 처리한다
+* 입력: 블록은 Pixi `pointertap`(마우스·터치 공통), 버튼은 HTML. 별도 입력 모듈은 두지 않는다
 
 디렉터리:
 
 ```text
 src/
-  main.ts
-  game/        state.ts  reducer.ts  rules.ts  rng.ts  types.ts
-  physics/     world.ts  hexgrid.ts  support.ts
-  render/      scene.ts  board.ts  penguin.ts  hammer.ts  roulette.ts  tween.ts
-  ui/          setup.ts  hud.ts  result.ts
-  input/       pointer.ts
+  main.ts  style.css
+  game/        types.ts  rng.ts  hexgrid.ts  rules.ts  reducer.ts
+  physics/     world.ts  support.ts  params.ts            (M2)
+  render/      board.ts  penguin.ts  hammer.ts  roulette.ts  tween.ts
+  ui/          hud.ts  setup.ts  result.ts
   assets/      (PNG)
 tests/         rules.test.ts  reducer.test.ts  physics.test.ts
 ```
@@ -177,7 +176,7 @@ interface GameState {
 
 | 단계 | 산출물 | 완료 기준 |
 | --- | --- | --- |
-| M1 뼈대 | Vite 프로젝트, 육각 그리드 렌더(도형), 규칙 모듈 + 테스트, 핫시트 턴 진행(낙하는 임시 규칙) | 2명이 끝까지 한 판 진행 |
+| M1 뼈대 | Vite 프로젝트, 육각 그리드 렌더(도형), 규칙 모듈 + 테스트, 핫시트 턴 진행(낙하는 임시 규칙) | 2명이 끝까지 한 판 진행 (완료 2026-10-22) |
 | M2 물리 | Matter 월드, 타격·연쇄 낙하·펭귄 낙하, 결정성 테스트, 파라미터 튜닝 | 10판 플레이해 긴장감 확인 |
 | M3 게임 완성 | 룰렛, 설정 화면, HUD, N판·점수, 결과 화면, 모바일 레이아웃 | 4명 3판 풀게임 |
 | M4 마감 | AI 에셋 적용, 애니메이션·파편, 사운드(선택), Vercel 배포 | 공개 URL |
